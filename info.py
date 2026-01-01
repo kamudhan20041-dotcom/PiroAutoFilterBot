@@ -1,13 +1,9 @@
 import re
 from os import environ
-import asyncio
-import json
-from collections import defaultdict
-from typing import Dict, List, Union
-from pyrogram import Client
 from time import time
 
 id_pattern = re.compile(r'^.\d+$')
+
 def is_enabled(value, default):
     if value.strip().lower() in ["on", "true", "yes", "1", "enable", "y"]:
         return True
@@ -18,14 +14,14 @@ def is_enabled(value, default):
 
 # Bot information
 SESSION = environ.get('SESSION', 'Media_search')
-API_ID = int(environ.get('API_ID', ''))
+API_ID = int(environ.get('API_ID', '0'))
 API_HASH = environ.get('API_HASH', '')
 BOT_TOKEN = environ.get('BOT_TOKEN', '')
 PORT = environ.get("PORT", "8080")
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
-USE_CAPTION_FILTER = bool(environ.get('USE_CAPTION_FILTER', True))
+USE_CAPTION_FILTER = is_enabled(environ.get('USE_CAPTION_FILTER', 'True'), True)
 BOT_START_TIME = time()
 
 # Bot images & videos
@@ -40,15 +36,26 @@ ADMINS = [int(admin) if id_pattern.search(admin) else admin for admin in environ
 CHANNELS = [int(ch) if id_pattern.search(ch) else ch for ch in environ.get('CHANNELS', '0').split()]
 auth_users = [int(user) if id_pattern.search(user) else user for user in environ.get('AUTH_USERS', '').split()]
 AUTH_USERS = (auth_users + ADMINS) if auth_users else []
+
+# Auth Channel & Group
 auth_channel = environ.get('AUTH_CHANNEL')
-auth_grp = environ.get('AUTH_GROUP')
 AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_channel) else None
+
+auth_grp = environ.get('AUTH_GROUP')
 AUTH_GROUPS = [int(ch) for ch in auth_grp.split()] if auth_grp else None
-support_chat_id = environ.get('SUPPORT_CHAT_ID')
+
+# Request Channel
 reqst_channel = environ.get('REQST_CHANNEL_ID')
 REQST_CHANNEL = int(reqst_channel) if reqst_channel and id_pattern.search(reqst_channel) else None
-SUPPORT_CHAT_ID = -1001792675255
-NO_RESULTS_MSG = bool(environ.get("NO_RESULTS_MSG", False))
+
+# Support Chat (Fixed to respect Koyeb Variable)
+support_chat = environ.get('SUPPORT_CHAT_ID')
+if support_chat and id_pattern.search(support_chat):
+    SUPPORT_CHAT_ID = int(support_chat)
+else:
+    SUPPORT_CHAT_ID = -1001792675255 # Fallback
+
+NO_RESULTS_MSG = is_enabled(environ.get("NO_RESULTS_MSG", "False"), False)
 
 # MongoDB information
 DATABASE_URI = environ.get('DATABASE_URI', "")
@@ -59,7 +66,14 @@ COLLECTION_NAME = environ.get('COLLECTION_NAME', 'FILES')
 DELETE_CHANNELS = [int(dch) if id_pattern.search(dch) else dch for dch in environ.get('DELETE_CHANNELS', '0').split()]
 MAX_B_TN = environ.get("MAX_B_TN", "10")
 MAX_BTN = is_enabled((environ.get('MAX_BTN', "True")), True)
-LOG_CHANNEL = int(environ.get('LOG_CHANNEL', 0))
+
+# LOG CHANNEL (Safe Integer Conversion)
+try:
+    LOG_CHANNEL = int(environ.get('LOG_CHANNEL', 0))
+except (ValueError, TypeError):
+    print("Log Channel Error: Defaulting to 0")
+    LOG_CHANNEL = 0
+
 SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'raixchat')
 P_TTI_SHOW_OFF = is_enabled((environ.get('P_TTI_SHOW_OFF', "True")), False)
 IMDB = is_enabled((environ.get('IMDB', "False")), True)
