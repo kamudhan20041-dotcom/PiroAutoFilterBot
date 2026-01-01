@@ -1,4 +1,3 @@
-from alive import keep_alive
 import logging
 import logging.config
 
@@ -103,6 +102,7 @@ class Bot(Client):
                 yield message
                 current += 1
 
-keep_alive()
+
+
 app = Bot()
 app.run()
