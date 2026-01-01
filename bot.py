@@ -103,6 +103,6 @@ class Bot(Client):
                 yield message
                 current += 1
 
-
+keep_alive()
 app = Bot()
 app.run()
